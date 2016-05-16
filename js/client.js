@@ -50,8 +50,8 @@ canva.handleFile = {
 
           preview.src = imageBase;
 
-          for(var x = 0; x < checkImageW; ++x) {
-            for(var y = 0; y < checkImageH; ++y) {
+          for(var y = 0; y < checkImageH; ++y) {
+            for(var x = 0; x < checkImageW; ++x) {
               var canvas = document.createElement('canvas');
               var image = new Image();
               image.src = imageBase;
@@ -80,7 +80,7 @@ canva.handleFile = {
                 rgb.g += colourData.data[i+1];
                 rgb.b += colourData.data[i+2];
               }
-              
+
               rgb.r = ~~(rgb.r / count);
               rgb.g = ~~(rgb.g / count);
               rgb.b = ~~(rgb.b / count);
