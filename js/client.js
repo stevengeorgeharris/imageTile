@@ -1,6 +1,7 @@
 /**
  * Takes an image and builds a photo mosiac
  * @author Steven Harris
+ * @version 0.0.1
  *
  */
 
@@ -16,10 +17,10 @@ Mosiac.prototype.handleFileUpload = function() {
   function useImage(tar) {
     var file = tar;
 
-    if (file) {
+    if (file.type.indexOf('jpeg') !== -1 || file.type.indexOf('png') !== -1) {
       readImage.readAsDataURL(file);
     } else {
-      throw new Error('No file');
+      throw new Error('Wrong file type.');
     }
 
     readImage.addEventListener('load', function() {
@@ -73,13 +74,13 @@ Mosiac.prototype.createImage = function() {
 };
 
 Mosiac.prototype.renderImage = function() {
-
   var canvas = document.createElement('canvas');
   var context = canvas.getContext('2d');
   var renderHeight,
       renderWidth;
 
-  if (this.image.width > 500) {
+  // Handle large images.
+  if (this.image.width >= 500) {
     this.resize = 500;
     this.artboard.width = this.resize;
     this.artboard.height = this.image.height * (this.resize / this.image.width);
@@ -110,7 +111,6 @@ Mosiac.prototype.splitImage = function(renderedImage) {
   var imageWidth = (this.image.width / TILE_WIDTH) | 0;
 
   var imageData = renderedImage.getImageData(0, 0, renderedImage.canvas.width, renderedImage.canvas.height);
-  // placeContext.drawImage(this.image, x * TILE_WIDTH, y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, 0, 0, TILE_WIDTH, TILE_HEIGHT);
 
   for (var i = 0; i < imageHeight; i++) {
     for (var j = 0; j < imageWidth; j++) {
@@ -143,7 +143,7 @@ Mosiac.prototype.getTileData = function(tileX, tileY, width, tileData) {
 };
 
 Mosiac.prototype.getAverageColour = function(data) {
-  var blockSize = 5,
+  var tileSize = 5,
     i = -4,
     length,
     rgb = {
@@ -155,7 +155,7 @@ Mosiac.prototype.getAverageColour = function(data) {
 
   length = data.length;
 
-  while ((i += blockSize * 4) < length) {
+  while ((i += tileSize * 4) < length) {
     ++count;
     rgb.r += data[i];
     rgb.g += data[i + 1];

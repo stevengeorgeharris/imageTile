@@ -418,10 +418,16 @@ body {
   -ms-flex-pack: center;
       justify-content: center;
   transition: all 400ms ease; }
-  .c-drop__inner span {
+  .c-drop__inner .c-drop__intro {
     padding-bottom: .3em;
     padding-right: .3em;
     border-bottom: 1px solid transparent; }
+
+.c-drop__info {
+  text-align: center;
+  margin-top: 1.5em;
+  display: block;
+  font-size: .8em; }
 
 .c-upload {
   width: 0.1px;
