@@ -73,11 +73,30 @@ Mosiac.prototype.createImage = function() {
 };
 
 Mosiac.prototype.renderImage = function() {
+
   var canvas = document.createElement('canvas');
   var context = canvas.getContext('2d');
-  canvas.width = this.image.width;
-  canvas.height = this.image.height;
-  context.drawImage(this.image, 0, 0, canvas.width, canvas.height);
+  var renderHeight,
+      renderWidth;
+
+  if (this.image.width > 500) {
+    this.resize = 500;
+    this.artboard.width = this.resize;
+    this.artboard.height = this.image.height * (this.resize / this.image.width);
+    canvas.width = this.resize;
+    canvas.height = ~~(this.image.height * (this.resize / this.image.width));
+
+    renderHeight = ~~(this.image.height * (this.resize / this.image.width));
+    renderWidth = this.resize;
+  } else {
+    renderHeight = this.image.height;
+    renderWidth = this.image.width;
+  }
+
+  canvas.height = renderHeight;
+  canvas.width = renderWidth;
+
+  context.drawImage(this.image, 0, 0, renderWidth, renderHeight);
 
   return context;
 };
