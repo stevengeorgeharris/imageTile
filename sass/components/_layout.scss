@@ -1,0 +1,19 @@
+html, body {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(120deg,#00c4cc 25%,#6e4593 85%);
+  padding: 2em;
+}
+
+.c-canvas-wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

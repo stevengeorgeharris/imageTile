@@ -4,19 +4,17 @@
  *
  */
 
-var TILE_WIDTH = 16;
-var TILE_HEIGHT = 16;
-
 var Mosiac = function() {
   this.handleFileUpload();
 };
 
 Mosiac.prototype.handleFileUpload = function() {
-  this.uploadButton = document.querySelector('.c-upload');
+  var uploadButton = document.querySelector('.c-upload');
+  var dropZone = document.querySelector('.c-drop');
   var readImage = new FileReader();
 
-  this.uploadButton.addEventListener('change', function() {
-    var file = this.files[0];
+  function useImage(tar) {
+    var file = tar;
 
     if (file) {
       readImage.readAsDataURL(file);
@@ -27,7 +25,28 @@ Mosiac.prototype.handleFileUpload = function() {
     readImage.addEventListener('load', function() {
       this.prototype.uploadedImage = readImage.result;
       this.prototype.start();
+      dropZone.className = dropZone.className.replace(/\bc-drop--static\b/,'c-drop--dropped');
     }.bind(Mosiac));
+  }
+
+  dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropZone.className = dropZone.className.replace(/\bc-drop--static\b/,'c-drop--active');
+  }, false);
+
+  dropZone.addEventListener('dragend', function(e) {
+    e.preventDefault();
+    dropZone.className = dropZone.className.replace(/\bc-drop--active\b/,'c-drop--static');
+  }, false);
+
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.className = dropZone.className.replace(/\bc-drop--active\b/,'c-drop--dropped');
+    useImage(e.dataTransfer.files[0]);
+  }, false);
+
+  uploadButton.addEventListener('change', function(e) {
+    useImage(this.files[0]);
   });
 };
 

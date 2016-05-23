@@ -2,13 +2,20 @@
 <html>
   <head>
     <title>Mosaic</title>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
   </head>
   <body>
-    <div class="c-drop">
-      <!-- Drop Zone -->
+    <div class="c-drop c-drop--static">
+      <div class="c-drop__inner">
+        <span>Drag a file here or</span>
+        <input id="c-upload" class="c-upload" type="file"/>
+        <label class="c-upload__label" for="c-upload">choose a file</label>
+      </div>
     </div>
-    <input class="c-upload" type="file"/><img src="" class="c-preview"></div>
-    <canvas width="400" height="553" class="c-paste"></canvas>
+
+    <div class="c-canvas-wrap">
+      <canvas width="400" height="553" class="c-paste"></canvas>
+    </div>
 
     <script type="text/javascript" src="js/mosaic.js"></script>
     <script type="text/javascript" src="js/client.js"></script>
