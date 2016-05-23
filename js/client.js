@@ -1,114 +1,157 @@
-var canva = canva || {};
+/**
+ * Takes an image and builds a photo mosiac
+ * @author Steven Harris
+ *
+ */
 
-canva.handleFile = {
-  init: function() {
-    this.attach();
-  },
-  attach: function() {
-    var preview = document.querySelector('.c-preview');
-    var upload = document.querySelector('.c-upload');
-    var artboard = document.querySelector('.c-paste');
-    var readImage = new FileReader();
-    var xCount = 0, yCount = 0;
+var TILE_WIDTH = 16;
+var TILE_HEIGHT = 16;
 
-    upload.addEventListener('change', function() {
-      var file = this.files[0];
+var Mosiac = function() {
+  this.handleFileUpload();
+};
 
-      if (file) {
-        readImage.readAsDataURL(file);
-      }
+Mosiac.prototype.handleFileUpload = function() {
+  this.uploadButton = document.querySelector('.c-upload');
+  var readImage = new FileReader();
 
-      readImage.addEventListener("load", function () {
-        var imageBase = readImage.result;
-        var sliceWidth = TILE_WIDTH;
-        var sliceHeight = TILE_HEIGHT;
-        var checkImageW, checkImageY;
+  this.uploadButton.addEventListener('change', function() {
+    var file = this.files[0];
 
-        var getImage = new Image();
-        getImage.onload = splitImage;
-        getImage.src = imageBase;
+    if (file) {
+      readImage.readAsDataURL(file);
+    } else {
+      throw new Error('No file');
+    }
 
-        function componentToHex(c) {
-          var hex = c.toString(16);
-          return hex.length == 1 ? "0" + hex : hex;
-        }
+    readImage.addEventListener('load', function() {
+      this.prototype.uploadedImage = readImage.result;
+      this.prototype.start();
+    }.bind(Mosiac));
+  });
+};
 
-        function rgbToHex(r, g, b) {
-          return componentToHex(r) + componentToHex(g) + componentToHex(b);
-        }
+Mosiac.prototype.start = function() {
+  this.createImage();
+};
 
-        function splitImage() {
-          var checkImageW = ~~(getImage.width / 16);
-          var checkImageH = ~~(getImage.height / 16);
+/**
+ * A function which creates an image element.
+ * @param {string} The uploaded image
+ * @return {elemtent} Image
+ */
 
-          function drawSVG(x, y, xhr) {
-            svg = xhr.responseText;
-            svgImage = new Image();
-            svgImage.src = "data:image/svg+xml," + svg;
-            svgImage.load = artboardContext.drawImage(svgImage, x * sliceWidth, y * sliceHeight);
-          }
+Mosiac.prototype.createImage = function() {
+  this.artboard = document.querySelector('.c-paste');
+  this.artboardContext = this.artboard.getContext('2d');
 
-          preview.src = imageBase;
+  this.image = new Image();
+  this.image.addEventListener('load', function() {
+    var renderedImage = this.prototype.renderImage();
+    this.prototype.splitImage(renderedImage);
+  }.bind(Mosiac));
+  this.image.src = this.uploadedImage;
+};
 
-          for(var y = 0; y < checkImageH; ++y) {
-            for(var x = 0; x < checkImageW; ++x) {
-              var canvas = document.createElement('canvas');
-              var image = new Image();
-              image.src = imageBase;
-              canvas.width = sliceWidth;
-              canvas.height = sliceHeight;
-              var context = canvas.getContext('2d');
-              context.drawImage(image, x * sliceWidth, y * sliceHeight, sliceWidth, sliceHeight, 0, 0, canvas.width, canvas.height);
+Mosiac.prototype.renderImage = function() {
+  var canvas = document.createElement('canvas');
+  var context = canvas.getContext('2d');
+  canvas.width = this.image.width;
+  canvas.height = this.image.height;
+  context.drawImage(this.image, 0, 0, canvas.width, canvas.height);
 
-              var blockSize = 5,
-              data,
-              i = -4,
-              length,
-              rgb = {
-                r:0,
-                g:0,
-                b:0
-              },
-              count = 0;
+  return context;
+};
 
-              colourData = context.getImageData(0, 0, sliceWidth, sliceHeight);
-              length = colourData.data.length;
+Mosiac.prototype.splitImage = function(renderedImage) {
+  var width = renderedImage.canvas.width;
+  var placeCanvas = document.createElement('canvas');
+  var placeContext = placeCanvas.getContext('2d');
+  var pixelBlock = 5;
+  var imageHeight = (this.image.height / TILE_HEIGHT) | 0;
+  var imageWidth = (this.image.width / TILE_WIDTH) | 0;
 
-              while ( (i += blockSize * 4) < length ) {
-                ++count;
-                rgb.r += colourData.data[i];
-                rgb.g += colourData.data[i+1];
-                rgb.b += colourData.data[i+2];
-              }
+  var imageData = renderedImage.getImageData(0, 0, renderedImage.canvas.width, renderedImage.canvas.height);
+  // placeContext.drawImage(this.image, x * TILE_WIDTH, y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, 0, 0, TILE_WIDTH, TILE_HEIGHT);
 
-              rgb.r = ~~(rgb.r / count);
-              rgb.g = ~~(rgb.g / count);
-              rgb.b = ~~(rgb.b / count);
+  for (var i = 0; i < imageHeight; i++) {
+    for (var j = 0; j < imageWidth; j++) {
+      var x = j * TILE_WIDTH,
+        y = i * TILE_HEIGHT;
 
-              var hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-              var svg;
-              var artboardContext = artboard.getContext('2d');
-              var whereX = x * sliceWidth;
-              var whereY = y * sliceHeight;
-
-              (function(x, y) {
-                var colourReq = new XMLHttpRequest();
-                var countX = x;
-                var countY = y;
-                colourReq.addEventListener("load", function() {
-                  drawSVG(countX, countY, this);
-                }, false);
-                colourReq.open("GET", "/color/" + hex);
-                colourReq.send();
-              })(x, y);
-            }
-          }
-        }
-      }, false);
-    });
+      var tileData = this.getTileData(x, y, width, imageData);
+      var colour = this.getAverageColour(tileData);
+      this.getSvgTile(x, y, colour);
+    }
   }
 };
 
-window.onload = function() {
-  canva.handleFile.init();
+Mosiac.prototype.getTileData = function(tileX, tileY, width, tileData) {
+  var data = [];
+  for (var x = tileX; x < (tileX + TILE_WIDTH); x++) {
+    var xPos = x * 4;
+
+    for (var y = tileY; y < (tileY + TILE_HEIGHT); y++) {
+      var yPos = y * width * 4;
+      data.push(
+        tileData.data[xPos + yPos + 0],
+        tileData.data[xPos + yPos + 1],
+        tileData.data[xPos + yPos + 2],
+        tileData.data[xPos + yPos + 3]
+      );
+    }
+  }
+  return data;
 };
+
+Mosiac.prototype.getAverageColour = function(data) {
+  var blockSize = 5,
+    i = -4,
+    length,
+    rgb = {
+      r: 0,
+      g: 0,
+      b: 0
+    },
+    count = 0;
+
+  length = data.length;
+
+  while ((i += blockSize * 4) < length) {
+    ++count;
+    rgb.r += data[i];
+    rgb.g += data[i + 1];
+    rgb.b += data[i + 2];
+  }
+
+  rgb.r = ~~(rgb.r / count);
+  rgb.g = ~~(rgb.g / count);
+  rgb.b = ~~(rgb.b / count);
+
+  function convertToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+
+  return convertToHex(rgb.r) + convertToHex(rgb.g) + convertToHex(rgb.b);
+};
+
+Mosiac.prototype.getSvgTile = function(x, y, colour) {
+  var colourReq = new XMLHttpRequest();
+  var countX = x;
+  var countY = y;
+  colourReq.addEventListener("load", function(result) {
+    this.prototype.drawSvg(countX, countY, result.target.response);
+  }.bind(Mosiac), false);
+  colourReq.open("GET", "/color/" + colour);
+  colourReq.send();
+};
+
+Mosiac.prototype.drawSvg = function(x, y, xhr) {
+  svg = xhr;
+  svgImage = new Image();
+  svgImage.src = "data:image/svg+xml," + svg;
+  svgImage.load = this.artboardContext.drawImage(svgImage, x, y);
+};
+
+window.onload = new Mosiac();
