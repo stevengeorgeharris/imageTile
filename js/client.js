@@ -46,20 +46,15 @@ Mosiac.prototype.handleFileUpload = function() {
     useImage(e.dataTransfer.files[0]);
   }, false);
 
-  uploadButton.addEventListener('change', function(e) {
+  uploadButton.addEventListener('change', function() {
     useImage(this.files[0]);
   });
 };
 
 Mosiac.prototype.start = function() {
   this.createImage();
+  this.downloadCanvas();
 };
-
-/**
- * A function which creates an image element.
- * @param {string} The uploaded image
- * @return {elemtent} Image
- */
 
 Mosiac.prototype.createImage = function() {
   this.artboard = document.querySelector('.c-paste');
@@ -77,7 +72,7 @@ Mosiac.prototype.renderImage = function() {
   var canvas = document.createElement('canvas');
   var context = canvas.getContext('2d');
   var renderHeight,
-      renderWidth;
+    renderWidth;
 
   // Handle large images.
   if (this.image.width >= 500) {
@@ -104,9 +99,6 @@ Mosiac.prototype.renderImage = function() {
 
 Mosiac.prototype.splitImage = function(renderedImage) {
   var width = renderedImage.canvas.width;
-  var placeCanvas = document.createElement('canvas');
-  var placeContext = placeCanvas.getContext('2d');
-  var pixelBlock = 5;
   var imageHeight = (this.image.height / TILE_HEIGHT) | 0;
   var imageWidth = (this.image.width / TILE_WIDTH) | 0;
 
@@ -168,7 +160,7 @@ Mosiac.prototype.getAverageColour = function(data) {
 
   function convertToHex(c) {
     var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
+    return hex.length == 1 ? '0' + hex : hex;
   }
 
   return convertToHex(rgb.r) + convertToHex(rgb.g) + convertToHex(rgb.b);
@@ -178,18 +170,32 @@ Mosiac.prototype.getSvgTile = function(x, y, colour) {
   var colourReq = new XMLHttpRequest();
   var countX = x;
   var countY = y;
-  colourReq.addEventListener("load", function(result) {
+  colourReq.addEventListener('load', function(result) {
     this.prototype.drawSvg(countX, countY, result.target.response);
   }.bind(Mosiac), false);
-  colourReq.open("GET", "/color/" + colour);
+  colourReq.open('GET', '/color/' + colour);
   colourReq.send();
 };
 
 Mosiac.prototype.drawSvg = function(x, y, xhr) {
-  svg = xhr;
-  svgImage = new Image();
-  svgImage.src = "data:image/svg+xml," + svg;
-  svgImage.load = this.artboardContext.drawImage(svgImage, x, y);
+  var svg = xhr;
+  var svgImage = new Image();
+  svgImage.src = 'data:image/svg+xml,' + svg;
+  svgImage.onload = this.artboardContext.drawImage(svgImage, x, y);
+};
+
+Mosiac.prototype.downloadCanvas = function() {
+  var canvas =  document.querySelector('.c-paste');
+  var link = document.querySelector('.c-canvas-download');
+
+  function updateLink(link, filename) {
+    link.href = canvas.toDataURL();
+    link.download = filename;
+  }
+
+  link.addEventListener('click', function() {
+    updateLink(this, 'mosiac.jpg');
+  });
 };
 
 window.onload = new Mosiac();

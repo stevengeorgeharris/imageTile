@@ -1,9 +1,4 @@
-// Simulates a mosaic server.
-//
-// /             serves mosaic.html
-// /js/*         servers static files
-// /color/<hex>  generates a tile for the color <hex>
-//
+
 var mosaic = require('./js/mosaic.js');
 var fs = require('fs');
 var http = require('http');

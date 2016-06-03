@@ -49,23 +49,23 @@
 }
 
 .c-drop__info {
-  text-align: center;
-  margin-top: 1.5em;
   display: block;
   font-size: .8em;
+  margin-top: 1.5em;
+  text-align: center;
 }
 
 .c-upload {
-  width: 0.1px;
-	height: 0.1px;
-	opacity: 0;
-	overflow: hidden;
-	position: absolute;
-	z-index: -1;
+  height: .1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  width: .1px;
+  z-index: -1;
 
   &__label {
+    border-bottom: 1px solid $colour-primary;
     cursor: pointer;
     padding-bottom: .3em;
-    border-bottom: 1px solid $colour-primary;
   }
 }
